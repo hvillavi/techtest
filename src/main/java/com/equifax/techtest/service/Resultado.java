@@ -4,6 +4,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Resultado {
+    private String lat_input;
+    private String lng_input;
+    private Datos datos;
+
+    public Resultado(String lat_input, String lng_input) {
+        this.lat_input = lat_input;
+        this.lng_input = lng_input;
+        this.datos = datos;
+    }
+
     public String getLat_input() {
         return lat_input;
     }
@@ -14,16 +24,6 @@ public class Resultado {
 
     public Datos getDatos() {
         return datos;
-    }
-
-    private String lat_input;
-    private String lng_input;
-    private Datos datos;
-
-    public Resultado(String lat_input, String lng_input) {
-        this.lat_input = lat_input;
-        this.lng_input = lng_input;
-        this.datos = datos;
     }
 
     public void setDatos(Datos datos) {
