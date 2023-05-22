@@ -2,9 +2,10 @@ package com.equifax.techtest;
 
 import com.equifax.techtest.model.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -16,11 +17,11 @@ import java.io.IOException;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService jwtUserDetailsService;
 
-    public JwtRequestFilter(JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
+    public JwtRequestFilter(JwtUtil jwtUtil, UserDetailsService jwtUserDetailsService) {
         this.jwtUtil = jwtUtil;
-        this.authenticationManager = authenticationManager;
+        this.jwtUserDetailsService = jwtUserDetailsService;
     }
 
     @Override
@@ -38,17 +39,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 username = jwtUtil.extractUsername(jwt);
             } catch (ExpiredJwtException e) {
                 // Manejar caso de token expirado
-                // Aquí puedes realizar alguna acción, como enviar una respuesta de error o actualizar el estado del usuario en la base de datos
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Autenticar al usuario basado en el token JWT
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, null);
-            SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(authenticationToken));
+            // Obtener los detalles del usuario a partir del servicio UserDetailsService
+            UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(username);
+
+            // Crear una autenticación basada en los detalles del usuario
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            // Establecer la autenticación en el contexto de seguridad
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
 
         chain.doFilter(request, response);
     }
 }
-

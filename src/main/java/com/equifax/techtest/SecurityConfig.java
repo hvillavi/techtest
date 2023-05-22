@@ -1,20 +1,24 @@
 package com.equifax.techtest;
 
-import com.equifax.techtest.model.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private JwtRequestFilter jwtRequestFilter;
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -32,13 +36,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // Excluir el endpoint '/authenticate' de la autenticación
         httpSecurity.csrf().disable()
                 .authorizeRequests()
-                /*.antMatchers("/tabla1/tabla1").permitAll()*/
                 .antMatchers("/authenticate").permitAll()
                 .antMatchers("**").permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().authenticated()/*.and()
+                .exceptionHandling()
+                .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)*/;
 
-        /*JwtRequestFilter jwtRequestFilter = new JwtRequestFilter(jwtUtil, super.authenticationManagerBean());
-        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);*/
+        //httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
 }
